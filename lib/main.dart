@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+
 main(List<String> args) {
   runApp(MaterialApp(
     home: Home(),
+    debugShowCheckedModeBanner: false,
     theme: ThemeData(
       primaryColor: Colors.blue[300]
     ),
@@ -23,16 +25,22 @@ class _HomeState extends State<Home> {
   ] ;
 
   static int pedraInicial = 1;
-  int pedra = pedraInicial ;
+  int _pedra = pedraInicial ;
   int _whoWon = 0;
+  IconData _crossIcon = FontAwesomeIcons.times;
+  IconData _circleIcon = FontAwesomeIcons.circle;
+  IconData _neutralIcon = FontAwesomeIcons.asterisk;
+  IconData _drawIcon = FontAwesomeIcons.birthdayCake;
   @override
   Widget build(BuildContext context) {
-  
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
           IconButton(
-            icon: Icon(FontAwesomeIcons.radiation),
+            icon: Icon(
+              FontAwesomeIcons.syncAlt,
+              color: Colors.grey[300],
+            ),
             tooltip: "Resetar o jogo",
             onPressed: (){
               setState(() {
@@ -41,7 +49,7 @@ class _HomeState extends State<Home> {
                     [0,0,0],
                     [0,0,0]
                 ] ;
-                pedra = pedraInicial ;
+                _pedra = pedraInicial ;
                 _whoWon = 0;
               });
             },
@@ -74,7 +82,6 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
   Widget linhaJogodaVelha(int linha) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -91,86 +98,103 @@ class _HomeState extends State<Home> {
   IconData imgWhoWon(){
     switch (_whoWon) {
       case 3:
-        return FontAwesomeIcons.egg;
+        return _drawIcon;
         break;
       case -1:
-        return FontAwesomeIcons.volleyballBall;
+        return _circleIcon;
       case 1:
-        return FontAwesomeIcons.cross;
+        return _crossIcon;
       
       default:
-        return FontAwesomeIcons.user;
+        return _neutralIcon;
     }
   }
   IconData imgCelula(linha,coluna){
       switch(_matriz[linha][coluna]){
         case -1:
-          return FontAwesomeIcons.volleyballBall;
+          return _circleIcon;
         break;
         case 1:
-          return FontAwesomeIcons.cross;
+          return _crossIcon;
         break;
         default:
-          return FontAwesomeIcons.asterisk;
+          return _neutralIcon;
       }
   }
   Widget celula(int linha,int coluna){
     IconData  data = imgCelula(linha,coluna);
     return IconButton(
-      icon: Icon(data),
+      icon: Icon(imgCelula(linha,coluna)),
       onPressed: (){
         if(_matriz[linha][coluna]!=0 || _whoWon!=0){
           return null;
         }else{
           _fazerJogada(linha,coluna);
         }
-        
-        }, 
+      }, 
       
     );
   }
   void _fazerJogada(linha,coluna){
     setState(() {
-          _matriz[linha][coluna] = pedra;
-          if (_vitoria(linha,coluna) == 0) {
-            pedra = pedra == 1 ? -1 : 1;
-          }
-          
+          _matriz[linha][coluna] = _pedra;
+          _vitoria(linha,coluna);
+          _pedra = _pedra == 1 ? -1 : 1;
           print(_matriz);
     });
   }
-  // int _preenchimento 
-  //TODO:metodo para verificar o empate
+  bool _empate(){
+    int count = 0;
+    for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 3; j++) {
+        count += _matriz[i][j] != 0 ? 1 : 0;
+      }
+    }
+    return count == 9 ? true : false;
+  }
+  bool _vitoriaLinha(linha){
+    var countL = 0;
+    for (var i = 0; i < 3; i++) {
+        countL += _matriz[linha][i] == _pedra ? 1 : 0 ; 
+    }
+    return countL == 3 ? true : false;
+  }
+  bool _vitoriaColuna(coluna){
+    var countC = 0;
+    for (var i = 0; i < 3; i++) {
+      countC += _matriz[i][coluna]==_pedra ? 1 : 0;
+    }
+    return countC == 3 ? true : false;
+  }
+  bool _vitoriaDiagonais(){
+    var countDP = 0,countDS = 0;
+    for (var i = 0; i < 3; i++) {
+        for (var j = 0; j < 3; j++) {
+          if (i == j)
+              {
+                  countDP+= _matriz[i][j] == _pedra ? 1 : 0;
+              } 
+              if (i == (2-j))
+              {
+                  countDS+= _matriz[i][j] ==  _pedra ? 1 : 0;
+                  
+              } 
+        }
+      }
+    return countDP == 3 || countDS == 3 ? true : false;
+  }
   int _vitoria(linha,coluna){
-    var countL = 0,countC = 0,countDP = 0,countDS = 0;
-    for (var i = 0; i < 3; i++) {
-      countL += _matriz[linha][i] == pedra ? 1 : 0 ;
-      
-    }
-    
-    for (var i = 0; i < 3; i++) {
-      countC += _matriz[i][coluna]==pedra ? 1 : 0;
-        
-    }
-    for (var i = 0; i < 3; i++) {
-       for (var j = 0; j < 3; j++) {
-         if (i == j)
-            {
-                countDP+= _matriz[i][j] == pedra ? 1 : 0;
-            } 
-            if (i == (2-j))
-            {
-                countDS+= _matriz[i][j] ==  pedra? 1 : 0;
-                
-            } 
-       }
-    }
-    if (countL == 3 || countC == 3 || countDP == 3 || countDS == 3) {
+      if (_vitoriaColuna(coluna)||_vitoriaLinha(linha)||_vitoriaDiagonais()) {
+        setState(() {
+          _whoWon = _pedra;  
+        });
+        return 1;
+      }
+    if (_empate()) {
       setState(() {
-        _whoWon = pedra;  
+        _whoWon = 3;
       });
-      return 1;
-      
+      return 3;
     }
     return 0;
   }
