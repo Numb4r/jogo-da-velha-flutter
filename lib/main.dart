@@ -130,7 +130,6 @@ class _HomeState extends State<Home> {
   }
 
   Widget celula(int linha, int coluna) {
-    IconData data = imgCelula(linha, coluna);
     return IconButton(
       icon: Icon(imgCelula(linha, coluna)),
       onPressed: () {
