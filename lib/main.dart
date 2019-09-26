@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
   IconData _crossIcon = FontAwesomeIcons.times;
   IconData _circleIcon = FontAwesomeIcons.circle;
   IconData _neutralIcon = FontAwesomeIcons.asterisk;
-  IconData _drawIcon = FontAwesomeIcons.birthdayCake;
+  IconData _drawIcon = FontAwesomeIcons.sadTear;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
